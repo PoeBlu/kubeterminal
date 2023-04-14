@@ -54,52 +54,44 @@ def executeBackgroudCmd(cmd):
     
 
 def deletePod(podName,namespace,force):
-    cmd="kubectl delete pod " + podName
-    cmd=cmd + " -n " + namespace
+    cmd = f"kubectl delete pod {podName}"
+    cmd = f"{cmd} -n {namespace}"
     if (force == True):
-        cmd=cmd + " --grace-period=0 --force"
-    output = executeBackgroudCmd(cmd)
-    return output
+        cmd = f"{cmd} --grace-period=0 --force"
+    return executeBackgroudCmd(cmd)
 
 
 def describePod(podName,namespace,options):
-    cmd="kubectl describe pod " + podName
-    cmd=cmd +" -n "+namespace +" "+ options
-    output = executeCmd(cmd)
-    return output
+    cmd = f"kubectl describe pod {podName}"
+    cmd = f"{cmd} -n {namespace} {options}"
+    return executeCmd(cmd)
 
 def getPodYaml(podName,namespace):
-    cmd="kubectl get pod " + podName
+    cmd = f"kubectl get pod {podName}"
 
-    cmd=cmd+" -n " + namespace
-    cmd=cmd+" -o yaml "
+    cmd = f"{cmd} -n {namespace}"
+    cmd = f"{cmd} -o yaml "
     output = ""
-    output = executeCmd(cmd)
-
-    return output
+    return executeCmd(cmd)
 
 def getPodJSON(podName,namespace):
-    cmd="kubectl get pod " + podName
+    cmd = f"kubectl get pod {podName}"
 
-    cmd=cmd+" -n " + namespace
-    cmd=cmd+" -o json "
+    cmd = f"{cmd} -n {namespace}"
+    cmd = f"{cmd} -o json "
     output = ""
-    output = executeCmd(cmd)
-
-    return output
+    return executeCmd(cmd)
 
 def getPodLabels(podName,namespace):
-    cmd="kubectl get pod %s -n %s --show-labels" % (podName, namespace)
-    output = executeCmd(cmd)
-
-    return output
+    cmd = f"kubectl get pod {podName} -n {namespace} --show-labels"
+    return executeCmd(cmd)
 
 def getTop(podName,namespace,cmdString,isAllNamespaces=False):
     #cmd="kubectl top pods -n %s" % (podName, namespace)
     cmd=None
     if cmdString.find("-c") > -1:
         #show top of selected pod and containers
-        cmd="kubectl top pod %s -n %s --containers" % (podName,namespace)
+        cmd = f"kubectl top pod {podName} -n {namespace} --containers"
 
     if cmdString.find("-n") > -1:
         #show top of nodes
@@ -108,81 +100,73 @@ def getTop(podName,namespace,cmdString,isAllNamespaces=False):
     if cmdString.find("-l") > -1:
         #show top of given labels
         label=cmdString.split()[2]
-        cmd="kubectl top pod  -n %s -l %s" % (namespace,label)
+        cmd = f"kubectl top pod  -n {namespace} -l {label}"
 
-    if cmd == None:
+    if cmd is None:
         if isAllNamespaces==True:
             cmd="kubectl top pods --all-namespaces"
         else:
-            cmd="kubectl top pods -n %s" % namespace
-    
-    output = executeCmd(cmd)
+            cmd = f"kubectl top pods -n {namespace}"
 
-    return output
+    return executeCmd(cmd)
 
 
 def execCmd(podName,namespace,command):
-    cmd="kubectl exec " + podName
+    cmd = f"kubectl exec {podName}"
 
-    cmd=cmd+" -n " + namespace
+    cmd = f"{cmd} -n {namespace}"
     if (command.find("-c")==0):
         #there is container
         commandList=command.split()
         #first is -c
         #second is container name
         containerName=commandList[1]
-        cmd=cmd+" -c %s -- %s " % (containerName," ".join(commandList[2:]))
+        cmd = f'{cmd} -c {containerName} -- {" ".join(commandList[2:])} '
     else:
-      cmd=cmd+" -- " + command
-    output = executeCmd(cmd)
-
-    return output
+        cmd = f"{cmd} -- {command}"
+    return executeCmd(cmd)
 
 
 
 def logsPod(podName,namespace,options):
-    cmd="kubectl logs " + podName
-    cmd=cmd +" -n "+namespace +" "+options
-    output = executeCmd(cmd)
-    return output
+    cmd = f"kubectl logs {podName}"
+    cmd = f"{cmd} -n {namespace} {options}"
+    return executeCmd(cmd)
 
 def getNodes(noderole=None):
     #kubectl get nodes -l node-role.kubernetes.io/worker=true
     cmd="kubectl get nodes "
     if noderole != None:
-       cmd = "%s -l node-role.kubernetes.io/%s=true" % (cmd,noderole)
-    output = executeCmd(cmd+" --no-headers")
-    return output
+        cmd = f"{cmd} -l node-role.kubernetes.io/{noderole}=true"
+    return executeCmd(f"{cmd} --no-headers")
 
 def describeNode(nodeName):
     cmd="kubectl describe node \"%s\" " % nodeName
-    output = executeCmd(cmd)
-    return output
+    return executeCmd(cmd)
 
 def getDescribeNodes(noderole=None):
     #kubectl get nodes -l node-role.kubernetes.io/worker=true
     cmd="kubectl describe nodes "
     if noderole != None:
-       cmd = "%s -l node-role.kubernetes.io/%s=true" % (cmd,noderole)
-    output = executeCmd(cmd)
-    return output
+        cmd = f"{cmd} -l node-role.kubernetes.io/{noderole}=true"
+    return executeCmd(cmd)
 
 
 def getPods(namespace,nodeNameList=[]):
     cmd="kubectl get pods "
 
     if namespace == "all-namespaces":
-        cmd=cmd+"--"+namespace
+        cmd = f"{cmd}--{namespace}"
     else:
-        cmd=cmd+"-n "+namespace
-    cmd=cmd+" -o wide "
-    cmd=cmd+" --no-headers"
+        cmd = f"{cmd}-n {namespace}"
+    cmd += " -o wide "
+    cmd += " --no-headers"
     output = ""
     if nodeNameList != None and len(nodeNameList)>0:
         #get pods for specified nodes
         for nodeName in nodeNameList:
-            #kubectl get pods --all-namespaces  --no-headers --field-selector spec.nodeName=10.31.10.126    
-            cmd2="%s --field-selector spec.nodeName=%s" % (cmd,nodeName)
+            #kubectl get pods --all-namespaces  --no-headers --field-selector spec.nodeName=10.31.10.126
+            cmd2 = f"{cmd} --field-selector spec.nodeName={nodeName}"
             output2 = executeCmd(cmd2)
             if output2.lower().find("no resources found") == -1:
                 output = output + output2

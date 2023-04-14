@@ -10,8 +10,7 @@ def describe(podName,namespaceName,options):
     return describePod(podName,namespaceName,options)
 
 def logs(podName,namespaceName,options):
-    logText = logsPod(podName,namespaceName,options)
-    return logText
+    return logsPod(podName,namespaceName,options)
 
 def yaml(podName,namespaceName):
     return getPodYaml(podName,namespaceName)
@@ -62,7 +61,7 @@ def top(podName,namespaceName,cmdString,isAllNamespaces=False,doAsciiGraph=False
                 cpuUsagePercentForNode.append((fields[0], int(fields[2].replace("%",""))))
                 memoryUsagePercentForNode.append((fields[0], int(fields[4].replace("%",""))))
             elif isAllNamespaces==True:
-                rowTitle="%s/%s" % (fields[0],fields[1])
+                rowTitle = f"{fields[0]}/{fields[1]}"
                 cpuUse=(rowTitle, int(fields[2].replace("m","")))
                 memUse=(rowTitle, int(fields[3].replace("Mi","")))
             else:
@@ -73,13 +72,13 @@ def top(podName,namespaceName,cmdString,isAllNamespaces=False,doAsciiGraph=False
 
         cpuTitle='CPU (millicores)'
         if podName != None:
-            cpuTitle="%s - %s" % (cpuTitle,podName)
+            cpuTitle = f"{cpuTitle} - {podName}"
         for line in  graph.graph(cpuTitle, cpuUsage):
             output = output + line + "\n"
 
         memTitle='Memory (Mi bytes)'
         if podName != None:
-            memTitle="%s - %s" % (memTitle,podName)
+            memTitle = f"{memTitle} - {podName}"
         output= output + "\n"
         for line in  graph.graph(memTitle, memoryUsage):
            output = output + line + "\n"
@@ -128,7 +127,11 @@ def list(namespace,nodehost=None):
 
 
     podsList=[]
-    if nodehost != None:
+    if nodehost is None:
+        podsList=podsString.split('\n')
+
+
+    else:
         #get pods in given nodehost
         pods=podsString.split('\n')
         for pod in pods:
@@ -136,10 +139,6 @@ def list(namespace,nodehost=None):
                 podsList.append(pod)
 
         #return "\n".join(podsList)
-    else:
-        podsList=podsString.split('\n')
-
-
     #sort list
     podsList.sort()
     podsListString = prettyPrint(podFieldsList(podsList),justify="L")

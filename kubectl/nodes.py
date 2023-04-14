@@ -4,10 +4,7 @@ from .cmd import getNodes, describeNode, getDescribeNodes
 def describe(cmdOptions, selectedNode):
     node = ""
     options = cmdOptions.strip()
-    if options == "":
-        node = selectedNode
-    else:
-        node = options
+    node = selectedNode if options == "" else options
     if node.find("all") > -1:
         return "Describing all nodes not (yet) implemented."
     return describeNode(node)
@@ -34,13 +31,13 @@ def describeNodes(noderole,params=[]):
     #get all node descriptions
     while endIndex>-1:
         startIndex=nodesDescribeText.find("Name:",endIndex)
-        
+
         endIndex=nodesDescribeText.find("Name:",startIndex+1)
         if endIndex == -1:
             singleNodeDescribeTexts.append(nodesDescribeText[startIndex:])
         else:
             singleNodeDescribeTexts.append(nodesDescribeText[startIndex:endIndex])
-    
+
     #loop through all nodes
     outputText=""
     cpuUsage=[]
@@ -67,16 +64,14 @@ def describeNodes(noderole,params=[]):
         outputText=outputText+"\n"
 
     #total usage
-    
+
     outputText=outputText+"\n"
     outputText=outputText+"Total CPU allocation (approx.):\n"
     outputText=outputText+getAllocatedResourcesString(cpuUsage)
 
     outputText=outputText+"\n"
     outputText=outputText+"Total memory allocation (approx.):\n"
-    outputText=outputText+getAllocatedResourcesString(memoryUsage)
-
-    return outputText
+    return outputText+getAllocatedResourcesString(memoryUsage)
 
 def getAllocatedResourcesString(usage):
     totalAllocation=0
@@ -102,7 +97,7 @@ def list():
             readyString=nodeFields[1]
             if readyString == "Ready":
                 nodesReady=nodesReady+1
-            value="%s %s %s %s" % (nodeFields[0],readyString,nodeFields[2],nodeFields[4])
+            value = f"{nodeFields[0]} {readyString} {nodeFields[2]} {nodeFields[4]}"
             nodes.append((nodeFields[0],value))
 
     nodes.insert(0,("workers","all worker nodes"))

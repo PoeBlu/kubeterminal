@@ -5,17 +5,11 @@ import re
 class PodStatusLexer(Lexer):
     
     def allPodsRunning(self, line):
-        #return true if all pods are running (line shows 3/3, 1/1, etc.)
-        #return false if not all pods are running (line shows 2/3, 0/1, etc.)
-
-        matchObj = re.search( r'([0-9]+)/([0-9]+)', line)
-
-        if matchObj:
-            runningNow=int(matchObj.group(1))
-            runningTarget=int(matchObj.group(2))
-            return runningNow == runningTarget
-        else:
-           return False
+        return (
+            int(matchObj[1]) == int(matchObj[2])
+            if (matchObj := re.search(r'([0-9]+)/([0-9]+)', line))
+            else False
+        )
 
 
     def lex_document(self, document):

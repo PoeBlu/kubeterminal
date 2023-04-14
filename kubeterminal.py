@@ -58,7 +58,7 @@ def updateUI(updateArea):
     if updateArea == "selectedpod":
         appendToOutput(applicationState.selected_pod)
 
-    if updateArea == "nodepods" or updateArea == "namespacepods":
+    if updateArea in ["nodepods", "namespacepods"]:
         moveToLine=state.cursor_line
         ns = applicationState.current_namespace
         podsList=pods.list(ns,applicationState.selected_node)
@@ -126,11 +126,11 @@ def searchbuffer_(event):
         #if length of text is command container is > 0
         # assume that command is currently written
         #ignore search
-        command_container.text=command_container.text+"/"
+        command_container.text = f"{command_container.text}/"
         command_container.buffer.cursor_right(len(command_container.text))
-        
+
         return
-    
+
     layout.focus(command_container)
     command_container.text="/"
     command_container.buffer.cursor_right()
@@ -203,20 +203,20 @@ def appendToOutput(text,cmdString="",overwrite=False):
 
     if text is None or "No resources found" in text:    
         return
-    
+
     #TODO: option to set UTC or local
     #now = datetime.datetime.utcnow().isoformat()
     now = datetime.datetime.now().isoformat()
     if cmdString == "":
-        header = "=== %s ===" % now
+        header = f"=== {now} ==="
     else:
-        header = "=== %s - %s ===" % (now,cmdString)
-    
+        header = f"=== {now} - {cmdString} ==="
+
     if outputArea.text == "":        
         outputArea.text="\n".join([header,text,""])
     else:
         outputArea.text="\n".join([outputArea.text,header,text,""])
-    
+
 #    outputArea.buffer.cursor_position=len(outputArea.text)
     outputIndex=outputArea.text.find(header)
     outputArea.buffer.cursor_position=outputIndex#len(outputArea.text)
@@ -294,27 +294,27 @@ Commands:
         (namespace,podName)=getPodNameAndNamespaceName()
         if namespace!="" and podName != "":
             options=cmdString.replace("logs","")
-            cmdString = "logs " + podName
+            cmdString = f"logs {podName}"
             text=pods.logs(podName,namespace,options)
 
     if cmdString.find("describe") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
         if namespace!="" and podName != "":
             options=cmdString.replace("describe","")
-            cmdString = "describe " + podName
+            cmdString = f"describe {podName}"
             text=pods.describe(podName,namespace,options) 
 
     if cmdString.find("yaml") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
         if namespace!="" and podName != "":
-            text=pods.yaml(podName,namespace) 
-            cmdString = "yaml " + podName
+            text=pods.yaml(podName,namespace)
+            cmdString = f"yaml {podName}"
 
     if cmdString.find("json") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
         if namespace!="" and podName != "":
-            text=pods.json(podName,namespace) 
-            cmdString = "json " + podName
+            text=pods.json(podName,namespace)
+            cmdString = f"json {podName}"
 
     if cmdString.find("node") == 0:
         selectedNode=applicationState.selected_node
@@ -322,7 +322,7 @@ Commands:
         text=nodes.describe(options,selectedNode)
         if options == "":
             options = selectedNode
-        cmdString = "describe node %s " % options
+        cmdString = f"describe node {options} "
 
     if cmdString.find("delete") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
@@ -330,8 +330,8 @@ Commands:
         if (cmdString.find("--force") > -1):
             force=True
         text=pods.delete(podName,namespace,force)
-        cmdString = "delete pod %s" % podName
-        #refreshUIAfterCmd = True
+        cmdString = f"delete pod {podName}"
+            #refreshUIAfterCmd = True
 
     if cmdString.find("shell") == 0:
         shellCmd = cmdString.replace("shell","").strip()
@@ -340,12 +340,12 @@ Commands:
     if cmdString.find("exec") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
         command = cmdString.replace("exec","").strip()
-        cmdString = "exec %s %s" % (podName,command)
+        cmdString = f"exec {podName} {command}"
         text=pods.exec(podName,namespace,command)
 
     if cmdString.find("label") == 0:
         (namespace,podName)=getPodNameAndNamespaceName()
-        cmdString = "labels %s" % (podName)
+        cmdString = f"labels {podName}"
         text=pods.labels(podName,namespace)
 
     if cmdString.find("top") == 0:
@@ -354,16 +354,16 @@ Commands:
         if cmdString.find("-l") > -1:
             cmdString = cmdString.replace("-l","label")
         if cmdString.find("-c") > -1:
-            cmdString = "top pod %s" % (podName)
+            cmdString = f"top pod {podName}"
         if cmdString.find("-n") > -1:
             cmdString = "top nodes"
-        
+
         doAsciiGraph=False
         if topCmd.find("-g") > -1:
             doAsciiGraph = True
             topCmd = topCmd.replace("-g","")
 
-        
+
         text=pods.top(podName,namespace,topCmd,isAllNamespaces(),doAsciiGraph)
 
     if cmdString.find("cls") == 0:
@@ -381,10 +381,10 @@ Commands:
             #filename is the second argument
             filename = cmdArgs[1]
         else:
-            filename = "kubeterminal_output_%s.txt" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            filename = f'kubeterminal_output_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.txt'
         with open(filename, "w") as outputFile:
             outputFile.write(outputArea.text)
-        text="Output saved to file '%s'." % filename
+        text = f"Output saved to file '{filename}'."
 
 
     if cmdString.find("work") == 0:
@@ -393,9 +393,9 @@ Commands:
         params=[]
         if cmdString.find("-d") > -1:
            params.append("describe")
- 
+
         nodeStats = nodes.describeNodes("worker",params)
-        
+
         text=nodeStats
 
     if cmdString.find("clip") == 0:
@@ -408,8 +408,8 @@ Commands:
         appendToOutput(text,cmdString=cmdString)
         #appendToOutput("\n".join([outputArea.text,text]),cmd=cmd)
         #outputArea.text="\n".join([outputArea.text,text])
-    
-    if refreshUIAfterCmd == True:
+
+    if refreshUIAfterCmd:
         updateUI("namespacepods")
         
 def commandPrompt(line_number, wrap_count):
